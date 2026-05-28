@@ -1,6 +1,9 @@
 package cat.itacademy.s05.t01.n01.blackjack.domain.model;
 
+import cat.itacademy.s05.t01.n01.blackjack.domain.event.DomainEvent;
+import cat.itacademy.s05.t01.n01.blackjack.domain.event.GameFinished;
 import cat.itacademy.s05.t01.n01.blackjack.exceptions.DeckIsRequiredException;
+import cat.itacademy.s05.t01.n01.blackjack.exceptions.GameAlreadyFinishedException;
 import cat.itacademy.s05.t01.n01.blackjack.exceptions.GameNotInProgressException;
 
 import java.util.ArrayList;
@@ -15,7 +18,7 @@ public class Game {
     private final Deck deck;
     private GameStatus status;
     private GameResult result;
-    private final List<Object> domainEvents = new ArrayList<>();
+    private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     public Game(String id, Hand playerHand, Hand dealerHand, Deck deck, GameStatus status, GameResult result) {
         this.id = id == null ? UUID.randomUUID().toString() : id;
@@ -118,17 +121,25 @@ public class Game {
     }
 
     private void ensureInProgress() {
+        if (status == GameStatus.FINISHED) {
+            throw new GameAlreadyFinishedException(id);
+        }
         if (status != GameStatus.IN_PROGRESS) {
             throw new GameNotInProgressException();
         }
     }
 
     private void registerGameFinishedEvent() {
-        domainEvents.add("GameFinished");
+        domainEvents.add(new GameFinished(
+                id,
+                result,
+                playerHand.score(),
+                dealerHand.score()
+        ));
     }
 
-    public List<Object> pullDomainEvents() {
-        List<Object> events = new ArrayList<>(domainEvents);
+    public List<DomainEvent> pullDomainEvents() {
+        List<DomainEvent> events = new ArrayList<>(domainEvents);
         domainEvents.clear();
         return events;
     }
