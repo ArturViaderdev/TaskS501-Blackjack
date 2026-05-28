@@ -1,13 +1,13 @@
-package cat.itacademy.s05.t01.n01.blackjack.infrastructure;
+package cat.itacademy.s05.t01.n01.blackjack.application.dto;
 
-public class CardDocument {
+public class CardResponse {
     private String suit;
     private String rank;
 
-    public CardDocument() {
+    public CardResponse() {
     }
 
-    public CardDocument(String suit, String rank) {
+    public CardResponse(String suit, String rank) {
         this.suit = suit;
         this.rank = rank;
     }

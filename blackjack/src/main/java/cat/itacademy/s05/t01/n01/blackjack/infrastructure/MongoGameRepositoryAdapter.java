@@ -3,8 +3,9 @@ package cat.itacademy.s05.t01.n01.blackjack.infrastructure;
 import cat.itacademy.s05.t01.n01.blackjack.domain.model.Game;
 
 import cat.itacademy.s05.t01.n01.blackjack.domain.port.GameRepository;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-
+@Component
 public class MongoGameRepositoryAdapter implements GameRepository {
     private final SpringDataGameMongoRepository repository;
 

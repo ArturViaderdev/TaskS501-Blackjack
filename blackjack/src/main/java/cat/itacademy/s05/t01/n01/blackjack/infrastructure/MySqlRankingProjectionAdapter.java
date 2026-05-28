@@ -2,10 +2,13 @@ package cat.itacademy.s05.t01.n01.blackjack.infrastructure;
 
 import cat.itacademy.s05.t01.n01.blackjack.application.dto.RankingItem;
 import cat.itacademy.s05.t01.n01.blackjack.domain.event.GameFinished;
+import cat.itacademy.s05.t01.n01.blackjack.domain.model.GameResult;
 import cat.itacademy.s05.t01.n01.blackjack.domain.port.RankingProjectionRepository;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Component
 public class MySqlRankingProjectionAdapter implements RankingProjectionRepository {
     private final SpringDataPlayerRankingRepository repository;
 

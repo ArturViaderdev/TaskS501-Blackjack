@@ -5,6 +5,7 @@ import cat.itacademy.s05.t01.n01.blackjack.domain.event.GameFinished;
 import cat.itacademy.s05.t01.n01.blackjack.exceptions.DeckIsRequiredException;
 import cat.itacademy.s05.t01.n01.blackjack.exceptions.GameAlreadyFinishedException;
 import cat.itacademy.s05.t01.n01.blackjack.exceptions.GameNotInProgressException;
+import cat.itacademy.s05.t01.n01.blackjack.exceptions.PlayerNameIsRequiredException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 public class Game {
     private final String id;
+    private final String playerName;
     private final Hand playerHand;
     private final Hand dealerHand;
     private final Deck deck;
@@ -20,8 +22,19 @@ public class Game {
     private GameResult result;
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
-    public Game(String id, Hand playerHand, Hand dealerHand, Deck deck, GameStatus status, GameResult result) {
+    public Game(String id,
+                String playerName,
+                Hand playerHand,
+                Hand dealerHand,
+                Deck deck,
+                GameStatus status,
+                GameResult result) {
+        if (playerName == null || playerName.isBlank()) {
+            throw new PlayerNameIsRequiredException();
+        }
+
         this.id = id == null ? UUID.randomUUID().toString() : id;
+        this.playerName = playerName;
         this.playerHand = playerHand == null ? new Hand() : playerHand;
         this.dealerHand = dealerHand == null ? new Hand() : dealerHand;
         this.deck = deck;
@@ -29,7 +42,7 @@ public class Game {
         this.result = result;
     }
 
-    public static Game startNew(Deck deck) {
+    public static Game startNew(String playerName, Deck deck) {
         if (deck == null) {
             throw new DeckIsRequiredException();
         }
@@ -42,7 +55,7 @@ public class Game {
         playerHand.addCard(deck.draw());
         dealerHand.addCard(deck.draw());
 
-        Game game = new Game(null, playerHand, dealerHand, deck, GameStatus.IN_PROGRESS, null);
+        Game game = new Game(null, playerName, playerHand, dealerHand, deck, GameStatus.IN_PROGRESS, null);
 
         if (playerHand.isBlackjack() || dealerHand.isBlackjack()) {
             game.finishInitialBlackjackIfNeeded();
@@ -125,13 +138,14 @@ public class Game {
             throw new GameAlreadyFinishedException(id);
         }
         if (status != GameStatus.IN_PROGRESS) {
-            throw new GameNotInProgressException();
+            throw new IllegalStateException("Game is not in progress");
         }
     }
 
     private void registerGameFinishedEvent() {
         domainEvents.add(new GameFinished(
                 id,
+                playerName,
                 result,
                 playerHand.score(),
                 dealerHand.score()
@@ -146,6 +160,10 @@ public class Game {
 
     public String getId() {
         return id;
+    }
+
+    public String getPlayerName() {
+        return playerName;
     }
 
     public Hand getPlayerHand() {

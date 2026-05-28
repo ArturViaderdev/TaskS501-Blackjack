@@ -2,37 +2,81 @@ package cat.itacademy.s05.t01.n01.blackjack.infrastructure;
 
 import cat.itacademy.s05.t01.n01.blackjack.domain.model.*;
 
-public class MongoGameMapper {
+import java.util.Collections;
+import java.util.List;
+
+public final class MongoGameMapper {
     private MongoGameMapper() {
     }
 
     public static GameDocument toDocument(Game game) {
+        if (game == null) {
+            return null;
+        }
+
         return new GameDocument(
                 game.getId(),
-                game.getPlayerHand().getCards().stream().map(MongoGameMapper::toCardDocument).toList(),
-                game.getDealerHand().getCards().stream().map(MongoGameMapper::toCardDocument).toList(),
-                game.getDeck().getRemainingCards().stream().map(MongoGameMapper::toCardDocument).toList(),
+                game.getPlayerName(),
+                toCardDocuments(game.getPlayerHand().getCards()),
+                toCardDocuments(game.getDealerHand().getCards()),
+                toCardDocuments(game.getDeck().getRemainingCards()),
                 game.getStatus().name(),
                 game.getResult() != null ? game.getResult().name() : null
         );
     }
 
     public static Game toDomain(GameDocument document) {
+        if (document == null) {
+            return null;
+        }
+
         return new Game(
                 document.getId(),
-                new Hand(document.getPlayerCards().stream().map(MongoGameMapper::toCard).toList()),
-                new Hand(document.getDealerCards().stream().map(MongoGameMapper::toCard).toList()),
-                new Deck(document.getRemainingDeck().stream().map(MongoGameMapper::toCard).toList()),
+                document.getPlayerName(),
+                new Hand(toCards(document.getPlayerCards())),
+                new Hand(toCards(document.getDealerCards())),
+                new Deck(toCards(document.getRemainingDeck())),
                 GameStatus.valueOf(document.getStatus()),
                 document.getResult() != null ? GameResult.valueOf(document.getResult()) : null
         );
     }
 
+    private static List<CardDocument> toCardDocuments(List<Card> cards) {
+        if (cards == null) {
+            return Collections.emptyList();
+        }
+
+        return cards.stream()
+                .map(MongoGameMapper::toCardDocument)
+                .toList();
+    }
+
+    private static List<Card> toCards(List<CardDocument> cardDocuments) {
+        if (cardDocuments == null) {
+            return Collections.emptyList();
+        }
+
+        return cardDocuments.stream()
+                .map(MongoGameMapper::toCard)
+                .toList();
+    }
+
     private static CardDocument toCardDocument(Card card) {
-        return new CardDocument(card.getSuit().name(), card.getRank().name());
+        if (card == null) {
+            return null;
+        }
+
+        return new CardDocument(
+                card.getSuit().name(),
+                card.getRank().name()
+        );
     }
 
     private static Card toCard(CardDocument document) {
+        if (document == null) {
+            return null;
+        }
+
         return new Card(
                 CardSuit.valueOf(document.getSuit()),
                 CardRank.valueOf(document.getRank())

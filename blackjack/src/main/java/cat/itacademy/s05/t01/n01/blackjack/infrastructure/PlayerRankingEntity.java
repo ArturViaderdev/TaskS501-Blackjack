@@ -1,15 +1,25 @@
 package cat.itacademy.s05.t01.n01.blackjack.infrastructure;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("player_ranking")
 public class PlayerRankingEntity {
+
     @Id
     private Long id;
+
+    @Column("player_name")
     private String playerName;
+
+    @Column("games_played")
     private Integer gamesPlayed;
+
+    @Column("games_won")
     private Integer gamesWon;
+
+    @Column("score")
     private Integer score;
 
     public PlayerRankingEntity() {

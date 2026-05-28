@@ -1,36 +1,34 @@
-package cat.itacademy.s05.t01.n01.blackjack.infrastructure;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+package cat.itacademy.s05.t01.n01.blackjack.application.dto;
 
 import java.util.List;
 
-@Document(collection = "games")
-public class GameDocument {
-    @Id
+public class GameResponse {
     private String id;
     private String playerName;
-    private List<CardDocument> playerCards;
-    private List<CardDocument> dealerCards;
-    private List<CardDocument> remainingDeck;
+    private List<CardResponse> playerCards;
+    private int playerScore;
+    private List<CardResponse> dealerCards;
+    private Integer dealerVisibleScore;
     private String status;
     private String result;
 
-    public GameDocument() {
+    public GameResponse() {
     }
 
-    public GameDocument(String id,
+    public GameResponse(String id,
                         String playerName,
-                        List<CardDocument> playerCards,
-                        List<CardDocument> dealerCards,
-                        List<CardDocument> remainingDeck,
+                        List<CardResponse> playerCards,
+                        int playerScore,
+                        List<CardResponse> dealerCards,
+                        Integer dealerVisibleScore,
                         String status,
                         String result) {
         this.id = id;
         this.playerName = playerName;
         this.playerCards = playerCards;
+        this.playerScore = playerScore;
         this.dealerCards = dealerCards;
-        this.remainingDeck = remainingDeck;
+        this.dealerVisibleScore = dealerVisibleScore;
         this.status = status;
         this.result = result;
     }
@@ -43,16 +41,20 @@ public class GameDocument {
         return playerName;
     }
 
-    public List<CardDocument> getPlayerCards() {
+    public List<CardResponse> getPlayerCards() {
         return playerCards;
     }
 
-    public List<CardDocument> getDealerCards() {
+    public int getPlayerScore() {
+        return playerScore;
+    }
+
+    public List<CardResponse> getDealerCards() {
         return dealerCards;
     }
 
-    public List<CardDocument> getRemainingDeck() {
-        return remainingDeck;
+    public Integer getDealerVisibleScore() {
+        return dealerVisibleScore;
     }
 
     public String getStatus() {
@@ -71,16 +73,20 @@ public class GameDocument {
         this.playerName = playerName;
     }
 
-    public void setPlayerCards(List<CardDocument> playerCards) {
+    public void setPlayerCards(List<CardResponse> playerCards) {
         this.playerCards = playerCards;
     }
 
-    public void setDealerCards(List<CardDocument> dealerCards) {
+    public void setPlayerScore(int playerScore) {
+        this.playerScore = playerScore;
+    }
+
+    public void setDealerCards(List<CardResponse> dealerCards) {
         this.dealerCards = dealerCards;
     }
 
-    public void setRemainingDeck(List<CardDocument> remainingDeck) {
-        this.remainingDeck = remainingDeck;
+    public void setDealerVisibleScore(Integer dealerVisibleScore) {
+        this.dealerVisibleScore = dealerVisibleScore;
     }
 
     public void setStatus(String status) {
