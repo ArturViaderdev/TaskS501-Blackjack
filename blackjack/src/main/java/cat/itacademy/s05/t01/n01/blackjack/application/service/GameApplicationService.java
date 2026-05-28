@@ -1,7 +1,7 @@
 package cat.itacademy.s05.t01.n01.blackjack.application.service;
 
 import cat.itacademy.s05.t01.n01.blackjack.application.dto.RankingItem;
-import cat.itacademy.s05.t01.n01.blackjack.application.dto.RankingProjectionRepository;
+import cat.itacademy.s05.t01.n01.blackjack.domain.port.RankingProjectionRepository;
 import cat.itacademy.s05.t01.n01.blackjack.domain.event.DomainEventPublisher;
 import cat.itacademy.s05.t01.n01.blackjack.domain.model.*;
 import cat.itacademy.s05.t01.n01.blackjack.exceptions.GameNotFoundException;

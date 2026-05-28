@@ -6,13 +6,19 @@ import java.time.Instant;
 
 public class GameFinished implements DomainEvent {
     private final String gameId;
+    private final String playerName;
     private final GameResult result;
     private final int playerScore;
     private final int dealerScore;
     private final Instant occurredAt;
 
-    public GameFinished(String gameId, GameResult result, int playerScore, int dealerScore) {
+    public GameFinished(String gameId,
+                        String playerName,
+                        GameResult result,
+                        int playerScore,
+                        int dealerScore) {
         this.gameId = gameId;
+        this.playerName = playerName;
         this.result = result;
         this.playerScore = playerScore;
         this.dealerScore = dealerScore;
@@ -21,6 +27,10 @@ public class GameFinished implements DomainEvent {
 
     public String getGameId() {
         return gameId;
+    }
+
+    public String getPlayerName() {
+        return playerName;
     }
 
     public GameResult getResult() {
