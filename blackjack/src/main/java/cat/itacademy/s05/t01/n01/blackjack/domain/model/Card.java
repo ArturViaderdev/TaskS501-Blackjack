@@ -1,6 +1,6 @@
 package cat.itacademy.s05.t01.n01.blackjack.domain.model;
 
-import cat.itacademy.s05.t01.n01.blackjack.exceptions.SuitAndRankRequiredException;
+import cat.itacademy.s05.t01.n01.blackjack.domain.exception.SuitAndRankRequiredException;
 
 import java.util.Objects;
 

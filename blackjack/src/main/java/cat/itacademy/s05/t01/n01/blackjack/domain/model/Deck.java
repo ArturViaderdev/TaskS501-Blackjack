@@ -1,7 +1,7 @@
 package cat.itacademy.s05.t01.n01.blackjack.domain.model;
 
-import cat.itacademy.s05.t01.n01.blackjack.exceptions.DeckMustContainCardsException;
-import cat.itacademy.s05.t01.n01.blackjack.exceptions.NoCardsRemainingInDeckException;
+import cat.itacademy.s05.t01.n01.blackjack.domain.exception.DeckMustContainCardsException;
+import cat.itacademy.s05.t01.n01.blackjack.domain.exception.NoCardsRemainingInDeckException;
 
 import java.util.ArrayList;
 import java.util.Collections;

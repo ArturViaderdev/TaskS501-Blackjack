@@ -1,6 +1,6 @@
 package cat.itacademy.s05.t01.n01.blackjack.domain.model;
 
-import cat.itacademy.s05.t01.n01.blackjack.exceptions.CardCannotBeNullException;
+import cat.itacademy.s05.t01.n01.blackjack.domain.exception.CardCannotBeNullException;
 
 import java.util.ArrayList;
 import java.util.Collections;

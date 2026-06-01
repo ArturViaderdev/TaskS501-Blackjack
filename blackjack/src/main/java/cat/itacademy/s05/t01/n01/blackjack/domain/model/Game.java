@@ -2,10 +2,9 @@ package cat.itacademy.s05.t01.n01.blackjack.domain.model;
 
 import cat.itacademy.s05.t01.n01.blackjack.domain.event.DomainEvent;
 import cat.itacademy.s05.t01.n01.blackjack.domain.event.GameFinished;
-import cat.itacademy.s05.t01.n01.blackjack.exceptions.DeckIsRequiredException;
-import cat.itacademy.s05.t01.n01.blackjack.exceptions.GameAlreadyFinishedException;
-import cat.itacademy.s05.t01.n01.blackjack.exceptions.GameNotInProgressException;
-import cat.itacademy.s05.t01.n01.blackjack.exceptions.PlayerNameIsRequiredException;
+import cat.itacademy.s05.t01.n01.blackjack.domain.exception.DeckIsRequiredException;
+import cat.itacademy.s05.t01.n01.blackjack.domain.exception.GameAlreadyFinishedException;
+import cat.itacademy.s05.t01.n01.blackjack.domain.exception.PlayerNameIsRequiredException;
 
 import java.util.ArrayList;
 import java.util.Collections;
