@@ -174,6 +174,9 @@ This separation allows the game aggregate to be stored as a document while keepi
 
 If the implementation needs to follow the original naming from the assignment literally, these endpoints can also be exposed as `/game/new`, `/game/{id}`, `/game/{id}/play`, `/game/{id}/delete`, `/ranking`, and `/player/{playerId}`. The current implementation can be adapted to either convention as long as it is documented consistently in Swagger and the README.
 
+You can access swagger with this url:
+http://localhost:9000/swagger-ui/index.html
+
 ### Example: create game
 
 **Request**
@@ -234,6 +237,40 @@ POST /games/{id}/stand
   "status": "FINISHED",
   "result": "DRAW"
 }
+```
+
+### HIT example
+POST /games/{id}/hit
+
+Response 200 OK:
+```json
+{
+  "id": "game-123",
+  "playerName": "Anna",
+  "playerCards": [
+    { "suit": "HEARTS", "rank": "TEN" },
+    { "suit": "SPADES", "rank": "SEVEN" },
+    { "suit": "CLUBS", "rank": "FOUR" }
+  ],
+  "playerScore": 21,
+  "dealerCards": [
+    { "suit": "DIAMONDS", "rank": "NINE" }
+  ],
+  "dealerVisibleScore": 9,
+  "status": "IN_PROGRESS",
+  "result": null
+}
+```
+
+### Ranking example
+GET /ranking
+
+Response 200 OK:
+```json
+[
+  { "playerName": "Anna", "gamesPlayed": 5, "gamesWon": 3, "score": 10 },
+  { "playerName": "Marc", "gamesPlayed": 4, "gamesWon": 2, "score": 7 }
+]
 ```
 
 ## Global exception handling
