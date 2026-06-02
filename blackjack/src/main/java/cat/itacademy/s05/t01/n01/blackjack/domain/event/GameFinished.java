@@ -46,7 +46,7 @@ public class GameFinished implements DomainEvent {
     }
 
     @Override
-    public Instant ocurredAt() {
+    public Instant ocuredAt() {
         return occurredAt;
     }
 }

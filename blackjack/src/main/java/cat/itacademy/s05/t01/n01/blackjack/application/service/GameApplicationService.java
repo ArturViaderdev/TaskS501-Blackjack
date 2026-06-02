@@ -15,16 +15,13 @@ import java.util.List;
 public class GameApplicationService {
     private final GameRepository gameRepository;
     private final RankingProjectionRepository rankingProjectionRepository;
-    private final DomainEventPublisher domainEventPublisher;
     private final DeckShuffler deckShuffler;
 
     public GameApplicationService(GameRepository gameRepository,
                                   RankingProjectionRepository rankingProjectionRepository,
-                                  DomainEventPublisher domainEventPublisher,
                                   DeckShuffler deckShuffler) {
         this.gameRepository = gameRepository;
         this.rankingProjectionRepository = rankingProjectionRepository;
-        this.domainEventPublisher = domainEventPublisher;
         this.deckShuffler = deckShuffler;
     }
 
@@ -34,12 +31,7 @@ public class GameApplicationService {
         Deck shuffledDeck = new Deck(shuffledCards);
 
         Game game = Game.startNew(playerName, shuffledDeck);
-
-        return gameRepository.save(game)
-                .flatMap(savedGame ->
-                        domainEventPublisher.publish(savedGame.pullDomainEvents())
-                                .thenReturn(savedGame)
-                );
+        return gameRepository.save(game);
     }
 
     public Mono<Game> getGame(String gameId) {
@@ -52,11 +44,7 @@ public class GameApplicationService {
                 .flatMap(game -> {
                     game.hit();
                     return gameRepository.save(game);
-                })
-                .flatMap(savedGame ->
-                        domainEventPublisher.publish(savedGame.pullDomainEvents())
-                                .thenReturn(savedGame)
-                );
+                });
     }
 
     public Mono<Game> stand(String gameId) {
@@ -64,11 +52,7 @@ public class GameApplicationService {
                 .flatMap(game -> {
                     game.stand();
                     return gameRepository.save(game);
-                })
-                .flatMap(savedGame ->
-                        domainEventPublisher.publish(savedGame.pullDomainEvents())
-                                .thenReturn(savedGame)
-                );
+                });
     }
 
     public Flux<RankingItem> getRanking() {

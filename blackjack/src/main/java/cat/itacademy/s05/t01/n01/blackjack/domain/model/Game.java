@@ -5,11 +5,11 @@ import cat.itacademy.s05.t01.n01.blackjack.domain.event.GameFinished;
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.DeckIsRequiredException;
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.GameAlreadyFinishedException;
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.PlayerNameIsRequiredException;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.AfterDomainEventPublication;
+import org.springframework.data.domain.DomainEvents;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class Game {
     private final String id;
@@ -19,6 +19,8 @@ public class Game {
     private final Deck deck;
     private GameStatus status;
     private GameResult result;
+
+    @Transient
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     public Game(String id,
@@ -69,9 +71,7 @@ public class Game {
         playerHand.addCard(deck.draw());
 
         if (playerHand.isBust()) {
-            status = GameStatus.FINISHED;
-            result = GameResult.DEALER_WIN;
-            registerGameFinishedEvent();
+            finishGame(GameResult.DEALER_WIN);
         }
     }
 
@@ -82,9 +82,7 @@ public class Game {
             dealerHand.addCard(deck.draw());
         }
 
-        result = resolveResult();
-        status = GameStatus.FINISHED;
-        registerGameFinishedEvent();
+        finishGame(resolveResult());
     }
 
     private boolean dealerMustDraw() {
@@ -93,24 +91,24 @@ public class Game {
 
     private void finishInitialBlackjackIfNeeded() {
         if (playerHand.isBlackjack() && dealerHand.isBlackjack()) {
-            result = GameResult.DRAW;
-            status = GameStatus.FINISHED;
-            registerGameFinishedEvent();
+            finishGame(GameResult.DRAW);
             return;
         }
 
         if (playerHand.isBlackjack()) {
-            result = GameResult.PLAYER_WIN;
-            status = GameStatus.FINISHED;
-            registerGameFinishedEvent();
+            finishGame(GameResult.PLAYER_WIN);
             return;
         }
 
         if (dealerHand.isBlackjack()) {
-            result = GameResult.DEALER_WIN;
-            status = GameStatus.FINISHED;
-            registerGameFinishedEvent();
+            finishGame(GameResult.DEALER_WIN);
         }
+    }
+
+    private void finishGame(GameResult result) {
+        this.result = result;
+        this.status = GameStatus.FINISHED;
+        registerGameFinishedEvent();
     }
 
     private GameResult resolveResult() {
@@ -151,10 +149,14 @@ public class Game {
         ));
     }
 
-    public List<DomainEvent> pullDomainEvents() {
-        List<DomainEvent> events = new ArrayList<>(domainEvents);
+    @DomainEvents
+    public Collection<DomainEvent> domainEvents() {
+        return domainEvents;
+    }
+
+    @AfterDomainEventPublication
+    public void clearDomainEvents() {
         domainEvents.clear();
-        return events;
     }
 
     public String getId() {

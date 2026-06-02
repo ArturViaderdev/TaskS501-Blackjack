@@ -1,5 +1,6 @@
 package cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest;
 
+import cat.itacademy.s05.t01.n01.blackjack.domain.port.RankingProjectionRepository;
 import cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest.dto.CreateGameRequest;
 import cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest.dto.GameResponse;
 import cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest.dto.RankingResponse;
@@ -22,7 +23,7 @@ public class GameController {
 
     @PostMapping("/games")
     public Mono<ResponseEntity<GameResponse>> createGame(@RequestBody CreateGameRequest request) {
-        return gameApplicationService.createGame(request.getPlayerName())
+        return gameApplicationService.createGame(request.playerName())
                 .map(RestMapper::toResponse)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
