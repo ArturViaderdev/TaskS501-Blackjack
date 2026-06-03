@@ -1,9 +1,5 @@
 package cat.itacademy.s05.t01.n01.blackjack.infrastructure.output.mongo.adapter;
-
-import cat.itacademy.s05.t01.n01.blackjack.domain.event.GameFinished;
 import cat.itacademy.s05.t01.n01.blackjack.domain.model.Game;
-
-import cat.itacademy.s05.t01.n01.blackjack.domain.model.GameStatus;
 import cat.itacademy.s05.t01.n01.blackjack.domain.port.GameRepository;
 import cat.itacademy.s05.t01.n01.blackjack.infrastructure.output.mongo.mapper.MongoGameMapper;
 import cat.itacademy.s05.t01.n01.blackjack.infrastructure.output.mongo.repository.SpringDataGameMongoRepository;
@@ -24,19 +20,10 @@ public class MongoGameRepositoryAdapter implements GameRepository {
     @Override
     public Mono<Game> save(Game game) {
         return repository.save(MongoGameMapper.toDocument(game))
-                .then(Mono.fromRunnable(() -> {
-                    if (game.getResult() != null && game.getStatus() == GameStatus.FINISHED) {
-                        eventPublisher.publishEvent(new GameFinished(
-                                game.getId(),
-                                game.getPlayerName(),
-                                game.getResult(),
-                                game.getPlayerHand().score(),
-                                game.getDealerHand().score()
-                        ));
-
-                    }
-                }))
-                .thenReturn(game);
+                .flatMap(saved -> Mono.fromRunnable(() -> {
+                    game.pullDomainEvents().forEach(eventPublisher::publishEvent);
+                    game.clearEvents();
+                }).thenReturn(game));
     }
 
     @Override

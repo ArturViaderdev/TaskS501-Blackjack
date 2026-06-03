@@ -1,7 +1,6 @@
 package cat.itacademy.s05.t01.n01.blackjack.domain.model;
 
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.CardCannotBeNullException;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,19 +31,16 @@ public class Hand {
     public int score() {
         int total = 0;
         int aces = 0;
-
         for (Card card : cards) {
             total += card.blackjackValue();
             if (card.isAce()) {
                 aces++;
             }
         }
-
         while (total > 21 && aces > 0) {
             total -= 10;
             aces--;
         }
-
         return total;
     }
 
@@ -67,14 +63,12 @@ public class Hand {
     public boolean isSoft() {
         int total = 0;
         int aces = 0;
-
         for (Card card : cards) {
             total += card.blackjackValue();
             if (card.isAce()) {
                 aces++;
             }
         }
-
         return aces > 0 && total <= 21;
     }
 }

@@ -34,10 +34,8 @@ public class GameControllerTests {
     @DisplayName("POST /games should create a game and return 201")
     void shouldCreateGame() {
         Game game = buildInProgressGame("game-1", "Anna");
-
         Mockito.when(gameApplicationService.createGame("Anna"))
                 .thenReturn(Mono.just(game));
-
         webTestClient.post()
                 .uri("/games")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -61,10 +59,8 @@ public class GameControllerTests {
     @DisplayName("GET /games/{id} should return a game")
     void shouldGetGameById() {
         Game game = buildInProgressGame("game-1", "Anna");
-
         Mockito.when(gameApplicationService.getGame("game-1"))
                 .thenReturn(Mono.just(game));
-
         webTestClient.get()
                 .uri("/games/game-1")
                 .exchange()
@@ -80,10 +76,8 @@ public class GameControllerTests {
     @DisplayName("POST /games/{id}/hit should return updated game")
     void shouldHitGame() {
         Game game = buildFinishedPlayerBustGame("game-1", "Anna");
-
         Mockito.when(gameApplicationService.hit("game-1"))
                 .thenReturn(Mono.just(game));
-
         webTestClient.post()
                 .uri("/games/game-1/hit")
                 .exchange()
@@ -98,10 +92,8 @@ public class GameControllerTests {
     @DisplayName("POST /games/{id}/stand should finish game")
     void shouldStandGame() {
         Game game = buildFinishedPlayerWinGame("game-1", "Anna");
-
         Mockito.when(gameApplicationService.stand("game-1"))
                 .thenReturn(Mono.just(game));
-
         webTestClient.post()
                 .uri("/games/game-1/stand")
                 .exchange()
@@ -117,10 +109,8 @@ public class GameControllerTests {
     void shouldReturnRanking() {
         RankingItem anna = new RankingItem("Anna", 3, 2, 7);
         RankingItem marc = new RankingItem("Marc", 4, 1, 4);
-
         Mockito.when(gameApplicationService.getRanking())
                 .thenReturn(Flux.just(anna, marc));
-
         webTestClient.get()
                 .uri("/ranking")
                 .exchange()
@@ -138,7 +128,6 @@ public class GameControllerTests {
     void shouldReturnNotFoundWhenGameDoesNotExist() {
         Mockito.when(gameApplicationService.getGame("missing-id"))
                 .thenReturn(Mono.error(new GameNotFoundException("missing-id")));
-
         webTestClient.get()
                 .uri("/games/missing-id")
                 .exchange()
@@ -155,7 +144,6 @@ public class GameControllerTests {
     void shouldReturnBadRequestWhenPlayerNameIsMissing() {
         Mockito.when(gameApplicationService.createGame(null))
                 .thenReturn(Mono.error(new IllegalArgumentException("Player name is required")));
-
         webTestClient.post()
                 .uri("/games")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -186,7 +174,6 @@ public class GameControllerTests {
                 new Card(CardSuit.SPADES, CardRank.THREE),
                 new Card(CardSuit.CLUBS, CardRank.FOUR)
         ));
-
         return new Game(id, playerName, playerHand, dealerHand, deck, GameStatus.IN_PROGRESS, null);
     }
 
@@ -196,16 +183,13 @@ public class GameControllerTests {
                 new Card(CardSuit.SPADES, CardRank.NINE),
                 new Card(CardSuit.CLUBS, CardRank.FIVE)
         ));
-
         Hand dealerHand = new Hand(List.of(
                 new Card(CardSuit.DIAMONDS, CardRank.EIGHT),
                 new Card(CardSuit.CLUBS, CardRank.SEVEN)
         ));
-
         Deck deck = new Deck(List.of(
                 new Card(CardSuit.HEARTS, CardRank.THREE)
         ));
-
         return new Game(id, playerName, playerHand, dealerHand, deck, GameStatus.FINISHED, GameResult.DEALER_WIN);
     }
 
@@ -214,17 +198,14 @@ public class GameControllerTests {
                 new Card(CardSuit.HEARTS, CardRank.TEN),
                 new Card(CardSuit.SPADES, CardRank.NINE)
         ));
-
         Hand dealerHand = new Hand(List.of(
                 new Card(CardSuit.DIAMONDS, CardRank.EIGHT),
                 new Card(CardSuit.CLUBS, CardRank.SEVEN),
                 new Card(CardSuit.HEARTS, CardRank.NINE)
         ));
-
         Deck deck = new Deck(List.of(
                 new Card(CardSuit.SPADES, CardRank.TWO)
         ));
-
         return new Game(id, playerName, playerHand, dealerHand, deck, GameStatus.FINISHED, GameResult.PLAYER_WIN);
     }
 }

@@ -1,17 +1,18 @@
 package cat.itacademy.s05.t01.n01.blackjack.domain.model;
 
-import cat.itacademy.s05.t01.n01.blackjack.domain.event.DomainEvent;
+import cat.itacademy.s05.t01.n01.blackjack.domain.event.GameCreated;
 import cat.itacademy.s05.t01.n01.blackjack.domain.event.GameFinished;
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.DeckIsRequiredException;
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.GameAlreadyFinishedException;
+import cat.itacademy.s05.t01.n01.blackjack.domain.exception.GameNotInProgressException;
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.PlayerNameIsRequiredException;
-import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.AbstractAggregateRoot;
 import org.springframework.data.domain.AfterDomainEventPublication;
 import org.springframework.data.domain.DomainEvents;
 
 import java.util.*;
 
-public class Game {
+public class Game extends AbstractAggregateRoot<Game> {
     private final String id;
     private final String playerName;
     private final Hand playerHand;
@@ -19,9 +20,6 @@ public class Game {
     private final Deck deck;
     private GameStatus status;
     private GameResult result;
-
-    @Transient
-    private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     public Game(String id,
                 String playerName,
@@ -33,7 +31,6 @@ public class Game {
         if (playerName == null || playerName.isBlank()) {
             throw new PlayerNameIsRequiredException();
         }
-
         this.id = id == null ? UUID.randomUUID().toString() : id;
         this.playerName = playerName;
         this.playerHand = playerHand == null ? new Hand() : playerHand;
@@ -43,33 +40,37 @@ public class Game {
         this.result = result;
     }
 
+    @DomainEvents
+    public Collection<Object> pullDomainEvents() {
+        return super.domainEvents();
+    }
+
+    @AfterDomainEventPublication
+    public void clearEvents() {
+        super.clearDomainEvents();
+    }
+
     public static Game startNew(String playerName, Deck deck) {
         if (deck == null) {
             throw new DeckIsRequiredException();
         }
-
         Hand playerHand = new Hand();
         Hand dealerHand = new Hand();
-
         playerHand.addCard(deck.draw());
         dealerHand.addCard(deck.draw());
         playerHand.addCard(deck.draw());
         dealerHand.addCard(deck.draw());
-
         Game game = new Game(null, playerName, playerHand, dealerHand, deck, GameStatus.IN_PROGRESS, null);
-
         if (playerHand.isBlackjack() || dealerHand.isBlackjack()) {
             game.finishInitialBlackjackIfNeeded();
         }
-
+        game.registerEvent(new GameCreated(game.getId(), playerName));
         return game;
     }
 
     public void hit() {
         ensureInProgress();
-
         playerHand.addCard(deck.draw());
-
         if (playerHand.isBust()) {
             finishGame(GameResult.DEALER_WIN);
         }
@@ -77,11 +78,10 @@ public class Game {
 
     public void stand() {
         ensureInProgress();
-
         while (dealerMustDraw()) {
             dealerHand.addCard(deck.draw());
         }
-
+        System.out.println("Stand");
         finishGame(resolveResult());
     }
 
@@ -115,18 +115,14 @@ public class Game {
         if (dealerHand.isBust()) {
             return GameResult.PLAYER_WIN;
         }
-
         int playerScore = playerHand.score();
         int dealerScore = dealerHand.score();
-
         if (playerScore > dealerScore) {
             return GameResult.PLAYER_WIN;
         }
-
         if (playerScore < dealerScore) {
             return GameResult.DEALER_WIN;
         }
-
         return GameResult.DRAW;
     }
 
@@ -135,28 +131,18 @@ public class Game {
             throw new GameAlreadyFinishedException(id);
         }
         if (status != GameStatus.IN_PROGRESS) {
-            throw new IllegalStateException("Game is not in progress");
+            throw new GameNotInProgressException();
         }
     }
 
     private void registerGameFinishedEvent() {
-        domainEvents.add(new GameFinished(
+        registerEvent(new GameFinished(
                 id,
                 playerName,
                 result,
                 playerHand.score(),
                 dealerHand.score()
         ));
-    }
-
-    @DomainEvents
-    public Collection<DomainEvent> domainEvents() {
-        return domainEvents;
-    }
-
-    @AfterDomainEventPublication
-    public void clearDomainEvents() {
-        domainEvents.clear();
     }
 
     public String getId() {
@@ -195,7 +181,6 @@ public class Game {
         if (dealerHand.getCards().isEmpty()) {
             return Collections.emptyList();
         }
-
         return List.of(dealerHand.getCards().get(0));
     }
 }

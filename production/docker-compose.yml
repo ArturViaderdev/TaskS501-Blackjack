@@ -15,12 +15,17 @@ services:
   mongodb:
     container_name: blackjackmongodb
     restart: unless-stopped
-    ports:
-    - "27017:27017"
     volumes:
     - ./data/db:/data/db
     build:
         context: ./build/mongodb
     network_mode: "host"
+  api:
+    build:
+      context: ./build/api
+    container_name: blackjack_api
+    network_mode: "host"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
 volumes:
     mysql_data:

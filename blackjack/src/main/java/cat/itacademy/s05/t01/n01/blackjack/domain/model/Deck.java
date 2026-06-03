@@ -2,7 +2,6 @@ package cat.itacademy.s05.t01.n01.blackjack.domain.model;
 
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.DeckMustContainCardsException;
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.NoCardsRemainingInDeckException;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +18,6 @@ public class Deck {
 
     public static Deck standard52CardDeck() {
         List<Card> cards = new ArrayList<>();
-
         for (CardSuit suit : CardSuit.values()) {
             for (CardRank rank : CardRank.values()) {
                 cards.add(new Card(suit, rank));

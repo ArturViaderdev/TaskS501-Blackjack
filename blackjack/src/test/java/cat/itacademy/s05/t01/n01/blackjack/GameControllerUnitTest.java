@@ -17,8 +17,6 @@ public class GameControllerUnitTest {
     @Autowired
     private WebTestClient webTestClient;
 
-
-
     @Test
     void shouldCreateAndGetGame() {
         webTestClient.post()
@@ -59,7 +57,6 @@ public class GameControllerUnitTest {
     @Test
     void shouldCreateGameAndThenReadIt() {
         String id = createGameAndGetId();
-
         webTestClient.get()
                 .uri("/games/" + id)
                 .exchange()
@@ -87,7 +84,6 @@ public class GameControllerUnitTest {
     void shouldHitAndFinishGameGetScore(){
         String id = createGameAndGetId();
         GameResponse response;
-
         do{
                 response = webTestClient.post()
                         .uri("/games/" + id + "/hit")
@@ -125,7 +121,6 @@ public class GameControllerUnitTest {
     @Test
     void shouldHitGameWithoutFinishingIt() {
         String id = createGameAndGetId();
-
         webTestClient.post()
                 .uri("/games/" + id + "/hit")
                 .exchange()

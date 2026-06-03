@@ -15,7 +15,6 @@ public final class MongoGameMapper {
         if (game == null) {
             return null;
         }
-
         return new GameDocument(
                 game.getId(),
                 game.getPlayerName(),
@@ -31,7 +30,6 @@ public final class MongoGameMapper {
         if (document == null) {
             return null;
         }
-
         return new Game(
                 document.getId(),
                 document.getPlayerName(),
@@ -57,7 +55,6 @@ public final class MongoGameMapper {
         if (cardDocuments == null) {
             return Collections.emptyList();
         }
-
         return cardDocuments.stream()
                 .map(MongoGameMapper::toCard)
                 .toList();
@@ -67,10 +64,9 @@ public final class MongoGameMapper {
         if (card == null) {
             return null;
         }
-
         return new CardDocument(
-                card.getSuit().name(),
-                card.getRank().name()
+                card.suit().name(),
+                card.rank().name()
         );
     }
 
@@ -78,7 +74,6 @@ public final class MongoGameMapper {
         if (document == null) {
             return null;
         }
-
         return new Card(
                 CardSuit.valueOf(document.getSuit()),
                 CardRank.valueOf(document.getRank())

@@ -54,6 +54,7 @@ Package structure:
 │       │   │                           ├── domain
 │       │   │                           │   ├── event
 │       │   │                           │   │   ├── DomainEvent.java
+│       │   │                           │   │   ├── GameCreated.java
 │       │   │                           │   │   └── GameFinished.java
 │       │   │                           │   ├── exception
 │       │   │                           │   │   ├── CardCannotBeNullException.java
@@ -77,7 +78,6 @@ Package structure:
 │       │   │                           │   │   └── Hand.java
 │       │   │                           │   └── port
 │       │   │                           │       ├── DeckShuffler.java
-│       │   │                           │       ├── DomainEventPublisher.java
 │       │   │                           │       ├── GameRepository.java
 │       │   │                           │       └── RankingProjectionRepository.java
 │       │   │                           └── infrastructure
@@ -98,7 +98,7 @@ Package structure:
 │       │   │                               │           └── RestMapper.java
 │       │   │                               └── output
 │       │   │                                   ├── event
-│       │   │                                   │   └── SpringDomainEventPublisher.java
+│       │   │                                   │   └── GameFinishedListener.java
 │       │   │                                   ├── mongo
 │       │   │                                   │   ├── adapter
 │       │   │                                   │   │   └── MongoGameRepositoryAdapter.java
@@ -121,7 +121,8 @@ Package structure:
 │       │   │                                   └── random
 │       │   │                                       └── SecureDeckShuffler.java
 │       │   └── resources
-│       │       └── application.properties
+│       │       ├── application.properties
+│       │       └── application-test.properties
 │       └── test
 │           └── java
 │               └── cat
@@ -130,17 +131,21 @@ Package structure:
 │                           └── t01
 │                               └── n01
 │                                   └── blackjack
-│                                       ├── BlackjackApplicationTests.java
 │                                       ├── GameApplicationServiceTest.java
-│                                       └── GameControllerTests.java
+│                                       ├── GameControllerTests.java
+│                                       └── GameControllerUnitTest.java
 ├── production
 │   ├── build
+│   │   ├── api
+│   │   │   ├── blackjack-0.0.1-SNAPSHOT.jar
+│   │   │   └── Dockerfile
 │   │   ├── mongodb
 │   │   │   └── Dockerfile
 │   │   └── mysql
 │   │       ├── Dockerfile
 │   │       ├── initialize.sql
 │   │       └── mysqld.cnf
+│   ├── docker-compose-only-databases.yml
 │   └── docker-compose.yml
 └── README.md
 ```
@@ -328,20 +333,14 @@ For a reactive application with SQL, configuration must use `spring.r2dbc.*` and
 
 ### Requirements
 
-- Java 17 or higher.
-- Maven 3.9 or higher.
-- MongoDB running on the configured port.
-- MySQL or MariaDB running with the database already created.
-- You can run docker in production directory with
-```text
-docker-compose up --build
-```
+- Docker.
+
 
 ### Start the application
 
 ```bash
 cd production
-java -jar blackjack-0.0.1-SNAPSHOT.jar
+docker-compose up --build
 ```
 
 Once the application starts, Swagger/OpenAPI documentation will be available at:
@@ -442,6 +441,96 @@ Typical Maven dependency:
 - Add `PUT /player/{playerId}` if the player entity is also persisted as an independent resource.
 - Add SQL migrations with Flyway or Liquibase to create the ranking table automatically.
 - Add more integration tests and an exportable Postman collection.
+
+# Design Decisions
+
+## Architecture
+
+I used a **hexagonal architecture**.  
+I split the code into `Application`, `Domain`, and `Infrastructure` to keep the business rules isolated from frameworks and persistence concerns. This makes the core easier to test and to evolve independently of MongoDB, MySQL, or the web layer.
+
+## DTOs and API Models
+
+I use DTOs for requests and responses.  
+In `application`, I keep `RankingItem`, which represents the ranking view used for reads. The service coordinates use cases but does not contain the game logic itself.
+
+## Domain Model
+
+In `domain`, I keep the `GameFinished` event, which is an immutable business fact that other components can listen to in order to trigger side effects such as updating the ranking or sending notifications.
+`Instant occurredAt` stores the exact time when the event happened, which helps with ordering, debugging, traceability, and auditing.
+
+I also keep all the domain exceptions there.  
+The domain model includes `Game`, `Hand`, `Deck`, `Card`, `CardRank`, `CardSuit`, `GameResult`, and `GameStatus`. `Game` is the aggregate root and contains the rules for starting a game, hitting, standing, and finishing the match.
+
+## Card Model
+
+`Card` is modeled as a `record`.  
+It stores `suit` and `rank`, validates that neither is null, exposes its blackjack value, and includes convenience methods such as `isAce()` and `isTenValueCard()`. `CardRank` represents the possible values a card can have in blackjack, and `CardSuit` represents the suits.
+
+## Deck and Hand
+
+`Deck` is the source of cards: it is initialized with the 52 cards of a French deck, shuffled at the beginning of the game, and exposes a method to draw the top card.  
+`Game` does not need to know how the deck is built or shuffled; it only asks `Deck` for cards, which keeps game logic separate from card-supply logic.
+
+`Hand` represents the player’s hand, meaning the set of cards accumulated during a game.  
+Its responsibility is to store cards and determine whether the hand is blackjack, bust, or still in play. It adds cards, calculates the total score, detects blackjack, detects bust, and handles the special value of the ace.
+
+## Game Model
+
+`Game` contains the business logic of the blackjack game.  
+It is the main aggregate root of the application and represents a complete match, including the player’s cards, the dealer’s cards, the current deck, the result, and whether the game is still in progress or already finished. It also centralizes rules such as hit, stand, and game termination.
+
+`Game` stores `id`, `playerName`, `playerHand`, `dealerHand`, `deck`, `status`, and `result`.  
+`startNew(...)` creates the game, deals the initial cards, and finishes the game immediately if there is an initial blackjack. `hit()` draws a card for the player and can end the game if the player busts, while `stand()` makes the dealer draw until the rule is satisfied and then computes the result.
+
+When the game ends, `Game` registers the `GameFinished` event.  
+That event lets other components perform secondary actions, such as updating the ranking, without mixing that logic into the game itself. A useful mental model is: `Game` decides what happens, `Deck` deals cards, `Hand` evaluates the hand, and `Game` coordinates everything.
+
+## Packages and Ports
+
+Inside the `domain.port` package, I keep interfaces for the Mongo repository, the MySQL repository, and `DeckShuffler`.
+This follows the dependency inversion idea: the domain defines what it needs, and infrastructure provides the implementation.
+
+## Application Layer
+
+In `application`, I have the service and the use-case coordination logic.  
+The service does not contain the blackjack rules; it orchestrates the use cases, loads the aggregate, executes the domain behavior, and saves the result. The `BeanConfig` class in `infrastructure.config` wires the service.
+
+## REST Layer
+
+In `input.rest.dto`, I keep the request and response DTOs: `CardResponse`, `CreateGameRequest`, `GameResponse`, and `RankingResponse`, all implemented as `records`.  
+In `mapper`, the `RestMapper` converts between DTOs and domain objects. In `infrastructure`, the `GameController` exposes the web endpoints and calls the service.
+
+## Events and Exceptions
+
+In `output.event`, I have `GameFinishedListener`, which subscribes to the `GameFinished` event to update the ranking.  
+In `exception`, I have `GlobalExceptionHandler` and `ErrorResponse`, which centralize the API error handling. This keeps controller code clean and avoids repeating error translation in every endpoint.
+
+## Mongo Persistence
+
+`MongoGameRepositoryAdapter` is the bridge between the domain `GameRepository` and the real MongoDB persistence.  
+It adapts the domain `Game` into a `GameDocument`, saves it through Spring Data Mongo, and maps documents back to `Game` when reading. This keeps the domain free from Mongo details and makes the adapter the only place that knows about the document model.
+
+In `document`, I keep `CardDocument` and `GameDocument`, which are the classes stored in MongoDB.  
+In `mapper`, `MongoGameMapper` converts from domain to document and back. In `repository`, `SpringDataGameMongoRepository` uses Spring Data’s default repository methods.
+
+## MySQL Projection
+
+In `mysql.adapter`, I implement `RankingProjectionRepository`.  
+`MySqlRankingProjectionAdapter` translates the domain event into a real write in MySQL: it receives `GameFinished`, converts it to the ranking persistence model, and inserts or updates the corresponding row. This keeps MySQL isolated from the rest of the app and lets the rest of the system stay unchanged if the database changes later.
+
+The flow is simple: `GameFinishedListener` detects the event, `MySqlRankingProjectionAdapter` converts it into a write, and `SpringDataPlayerRankingRepository` performs the actual database operation.  
+In `entity`, I keep `PlayerRankingEntity`, which is the entity stored in MySQL. In `mapper`, `MysqlRankingMapper` converts `PlayerRankingEntity` into `RankingItem`, and `SpringDataPlayerRankingRepository` defines the reactive MySQL operations such as `findByPlayerName` and `findAllByOrderByScoreDesc()`.
+
+## Deck Shuffling
+
+`SecureDeckShuffler` implements `DeckShuffler` and shuffles the cards randomly.  
+This belongs to infrastructure because the shuffling strategy is a technical detail that can change without affecting the game rules.
+
+## Overall Intent
+
+The main idea of the design is to keep the blackjack rules inside the domain and everything technical outside it.  
+That way, `Game`, `Hand`, and `Deck` describe how the game works, while Mongo, MySQL, REST, event handling, and mapping remain replaceable implementation details.
 
 ## Purpose
 

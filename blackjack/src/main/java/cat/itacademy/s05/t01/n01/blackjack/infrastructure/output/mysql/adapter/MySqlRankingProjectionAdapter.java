@@ -21,26 +21,19 @@ public class MySqlRankingProjectionAdapter implements RankingProjectionRepositor
 
     @Override
     public Mono<Void> updateWith(GameFinished event) {
-        String playerName = event.getPlayerName();
-
-        return repository.findByPlayerName(playerName)
-                .defaultIfEmpty(new PlayerRankingEntity(null, playerName, 0, 0, 0))
+        return repository.findByPlayerName(event.getPlayerName())
+                .switchIfEmpty(Mono.just(new PlayerRankingEntity(null, event.getPlayerName(), 0, 0, 0)))
                 .map(existing -> {
                     int gamesPlayed = existing.getGamesPlayed() == null ? 0 : existing.getGamesPlayed();
                     int gamesWon = existing.getGamesWon() == null ? 0 : existing.getGamesWon();
                     int score = existing.getScore() == null ? 0 : existing.getScore();
-
                     existing.setGamesPlayed(gamesPlayed + 1);
-
                     if (event.getResult() == GameResult.PLAYER_WIN) {
                         existing.setGamesWon(gamesWon + 1);
                         existing.setScore(score + 3);
                     } else if (event.getResult() == GameResult.DRAW) {
                         existing.setScore(score + 1);
-                    } else {
-                        existing.setScore(score);
                     }
-
                     return existing;
                 })
                 .flatMap(repository::save)

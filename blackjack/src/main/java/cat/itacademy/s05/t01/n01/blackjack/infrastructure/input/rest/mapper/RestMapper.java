@@ -1,5 +1,4 @@
 package cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest.mapper;
-
 import cat.itacademy.s05.t01.n01.blackjack.application.dto.query.RankingItem;
 import cat.itacademy.s05.t01.n01.blackjack.domain.model.Card;
 import cat.itacademy.s05.t01.n01.blackjack.domain.model.Game;
@@ -19,13 +18,11 @@ public final class RestMapper {
                 .stream()
                 .map(RestMapper::toCardResponse)
                 .toList();
-
         Integer dealerVisibleScore = visibleDealerCards.isEmpty()
                 ? null
                 : new Hand(
                 game.visibleDealerCards()
         ).score();
-
         return new GameResponse(
                 game.getId(),
                 game.getPlayerName(),
@@ -40,14 +37,14 @@ public final class RestMapper {
 
     public static RankingResponse toResponse(RankingItem item) {
         return new RankingResponse(
-                item.getPlayerName(),
-                item.getGamesPlayed(),
-                item.getGamesWon(),
-                item.getScore()
+                item.playerName(),
+                item.gamesPlayed(),
+                item.gamesWon(),
+                item.score()
         );
     }
 
     private static CardResponse toCardResponse(Card card) {
-        return new CardResponse(card.getSuit().name(), card.getRank().name());
+        return new CardResponse(card.suit().name(), card.rank().name());
     }
 }

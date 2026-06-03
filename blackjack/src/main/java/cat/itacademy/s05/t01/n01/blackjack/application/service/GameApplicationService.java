@@ -4,9 +4,9 @@ import cat.itacademy.s05.t01.n01.blackjack.application.dto.query.RankingItem;
 import cat.itacademy.s05.t01.n01.blackjack.domain.port.DeckShuffler;
 import cat.itacademy.s05.t01.n01.blackjack.domain.port.GameRepository;
 import cat.itacademy.s05.t01.n01.blackjack.domain.port.RankingProjectionRepository;
-import cat.itacademy.s05.t01.n01.blackjack.domain.port.DomainEventPublisher;
 import cat.itacademy.s05.t01.n01.blackjack.domain.model.*;
 import cat.itacademy.s05.t01.n01.blackjack.domain.exception.GameNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,7 +29,6 @@ public class GameApplicationService {
         Deck orderedDeck = Deck.standard52CardDeck();
         List<Card> shuffledCards = deckShuffler.shuffle(orderedDeck.getRemainingCards());
         Deck shuffledDeck = new Deck(shuffledCards);
-
         Game game = Game.startNew(playerName, shuffledDeck);
         return gameRepository.save(game);
     }
@@ -47,6 +46,7 @@ public class GameApplicationService {
                 });
     }
 
+    @Transactional
     public Mono<Game> stand(String gameId) {
         return getGame(gameId)
                 .flatMap(game -> {

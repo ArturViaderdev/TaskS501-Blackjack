@@ -1,0 +1,24 @@
+services:
+  mysql:
+    container_name: blackjackmysql
+    build:
+        context: ./build/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "ArturPassRoot-987"
+      MYSQL_DATABASE: blackjack
+      MYSQL_USER: devs
+      MYSQL_PASSWORD: "pw1234"
+    volumes:
+    - ./build/mysql/initialize.sql:/docker-entrypoint-initdb.d/initialize.sql:ro
+    - mysql_data:/var/lib/mysql
+    network_mode: "host"
+  mongodb:
+    container_name: blackjackmongodb
+    restart: unless-stopped
+    volumes:
+    - ./data/db:/data/db
+    build:
+        context: ./build/mongodb
+    network_mode: "host"
+volumes:
+    mysql_data:

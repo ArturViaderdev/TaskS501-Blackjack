@@ -1,6 +1,4 @@
 package cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest;
-
-import cat.itacademy.s05.t01.n01.blackjack.domain.port.RankingProjectionRepository;
 import cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest.dto.CreateGameRequest;
 import cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest.dto.GameResponse;
 import cat.itacademy.s05.t01.n01.blackjack.infrastructure.input.rest.dto.RankingResponse;
