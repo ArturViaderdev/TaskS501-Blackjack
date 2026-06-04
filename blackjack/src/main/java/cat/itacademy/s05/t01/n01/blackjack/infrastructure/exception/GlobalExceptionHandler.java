@@ -17,6 +17,13 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), exchange);
     }
 
+    @ExceptionHandler(org.springframework.web.server.MethodNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed(
+            org.springframework.web.server.MethodNotAllowedException ex,
+            ServerWebExchange exchange) {
+        return buildErrorResponse(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage(), exchange);
+    }
+
     @ExceptionHandler({
             PlayerNameIsRequiredException.class,
             DeckIsRequiredException.class,
